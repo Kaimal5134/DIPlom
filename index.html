@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ООО ПК "Импульс"</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Верхняя панель -->
+    <header class="header">
+        <div class="container">
+            <div class="logo">
+                <i class="fas fa-bolt logo-icon"></i>
+                <div class="logo-text">
+                    <span class="logo-main">ООО ПК Импульс</span>
+                </div>
+            </div>
+            
+            <!-- Авторизация и корзина -->
+            <div class="header-actions">
+                <!-- Корзина -->
+                <div class="cart-section">
+                    <button id="cartBtn" class="cart-btn">
+                        <i class="fas fa-shopping-cart"></i>
+                        <span id="cartCount" class="cart-count">0</span>
+                    </button>
+                    <div id="cartDropdown" class="cart-dropdown">
+                        <!-- Содержимое корзины заполняется через JS -->
+                    </div>
+                </div>
+                
+                <!-- Авторизация / Пользователь -->
+                <div class="auth-section">
+                    <button id="authBtn" class="auth-btn">
+                        <i class="fas fa-user-circle"></i>
+                        <span>Авторизация</span>
+                    </button>
+                    <div id="authDropdown" class="auth-dropdown">
+                        <form id="authForm" class="auth-form">
+                            <h3>Вход в систему</h3>
+                            <div class="form-group">
+                                <label for="login">Логин:</label>
+                                <input type="text" id="login" placeholder="Введите логин" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="password">Пароль:</label>
+                                <input type="password" id="password" placeholder="Введите пароль" required>
+                            </div>
+                            <button type="submit" class="submit-btn">Войти</button>
+                            <div class="form-links">
+                                <a href="#">Регистрация</a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Основной контент -->
+    <main class="main">
+        <div class="container">
+            <!-- Заголовок каталога с поиском и фильтром -->
+            <div class="catalog-header">
+                <div class="search-box">
+                    <input type="text" id="searchInput" placeholder="Поиск по названию...">
+                    <button id="searchBtn"><i class="fas fa-search"></i></button>
+                </div>
+                <div class="filter-box">
+                    <select id="categorySelect">
+                        <option value="">Все категории</option>
+                        <!-- Категории из БД -->
+                    </select>
+                </div>
+            </div>
+            <!-- Сетка товаров -->
+            <div id="productsContainer" class="products-grid">
+                <!-- Карточки товаров грузятся через JavaScript -->
+            </div>
+        </div>
+    </main>
+
+    <!-- Футер -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-logo">
+                    <i class="fas fa-bolt logo-icon"></i>
+                    <span>ООО ПК "Импульс"</span>
+                </div>
+                <div class="footer-info">
+                    <p>Предприятие ООО ПК «Импульс» осуществляет деятельность в сфере металлообработки и производства металлических изделий. Основным направлением работы компании является изготовление деталей и металлоконструкций для клиентов из различных отраслей: строительства, машиностроения, а также для оптовых покупателей.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Модальное окно деталей товара -->
+    <div id="productModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <div id="modalProductDetails"></div>
+            <div class="modal-actions">
+                <label for="modalQuantity">Количество:</label>
+                <input type="number" id="modalQuantity" min="1" value="1">
+                <button id="addToCartBtn">Добавить в корзину</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно истории заказов -->
+   <div id="ordersModal" class="modal" style="display: none;">
+    <div class="modal-content" style="max-width: 800px;">
+        <span class="close-orders-modal">&times;</span>
+        <h2>История заказов</h2>
+        <div id="ordersList"></div>
+    </div>
+</div>
+    <script src="script.js"></script>
+</body>
+</html>
