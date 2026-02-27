@@ -12,7 +12,7 @@ import traceback
 app = Flask(__name__, static_folder='static')
 CORS(app)
 
-
+# ----- Раздача статических файлов (фронтенд) -----
 @app.route('/')
 def serve_index():
     return send_from_directory('static', 'index.html')
@@ -26,6 +26,7 @@ def serve_static(path):
     return send_from_directory('static', path)
 
 
+# ----- API -----
 # Авторизация
 @app.route("/api/login", methods=["POST"])
 def login():
@@ -84,6 +85,7 @@ def login():
         print(f"Ошибка при авторизации: {e}")
         return jsonify({"success": False, "message": "Ошибка сервера"}), 500
 
+
 # Регистрация
 @app.route("/api/register", methods=["POST"])
 def register():
@@ -133,6 +135,7 @@ def register():
         print(f"Ошибка при регистрации: {e}")
         return jsonify({"success": False, "message": "Ошибка сервера"}), 500
 
+
 # Категории товаров (имена)
 @app.route("/api/categories", methods=["GET"])
 def get_categories():
@@ -147,6 +150,7 @@ def get_categories():
         print(f"Ошибка получения категорий: {e}")
         return jsonify({"success": False, "message": str(e)}), 500
 
+
 # Категории с id для админа
 @app.route("/api/categories_with_id", methods=["GET"])
 def get_categories_with_id():
@@ -159,6 +163,7 @@ def get_categories_with_id():
     except Exception as e:
         print(f"Ошибка получения категорий: {e}")
         return jsonify({"success": False, "message": str(e)}), 500
+
 
 # Создание категории
 @app.route("/api/categories", methods=["POST"])
@@ -179,6 +184,7 @@ def create_category():
     except Exception as e:
         print(f"Ошибка создания категории: {e}")
         return jsonify({"success": False, "message": "Ошибка сервера"}), 500
+
 
 # Обновление категории
 @app.route("/api/categories/<int:category_id>", methods=["PUT"])
@@ -202,6 +208,7 @@ def update_category(category_id):
         print(f"Ошибка обновления категории: {e}")
         return jsonify({"success": False, "message": "Ошибка сервера"}), 500
 
+
 # Удаление категории
 @app.route("/api/categories/<int:category_id>", methods=["DELETE"])
 def delete_category(category_id):
@@ -218,6 +225,7 @@ def delete_category(category_id):
     except Exception as e:
         print(f"Ошибка удаления категории: {e}")
         return jsonify({"success": False, "message": "Ошибка сервера"}), 500
+
 
 # Список товаров с фильтрацией
 @app.route("/api/products", methods=["GET"])
@@ -255,7 +263,7 @@ def get_products():
                 products = cursor.fetchall()
                 for product in products:
                     if product['image_id']:
-                        # Формируем URL 
+                        # Формируем абсолютный URL с текущим хостом
                         product['image_url'] = request.host_url.rstrip('/') + f"/api/product_image/{product['image_id']}"
                     else:
                         product['image_url'] = None
@@ -264,6 +272,7 @@ def get_products():
     except Exception as e:
         print(f"Ошибка получения товаров: {e}")
         return jsonify({"success": False, "message": str(e)}), 500
+
 
 # Получение одного товара
 @app.route("/api/products/<int:product_id>", methods=["GET"])
@@ -295,6 +304,7 @@ def get_product(product_id):
     except Exception as e:
         print(f"Ошибка получения товара: {e}")
         return jsonify({"success": False, "message": str(e)}), 500
+
 
 # Создание товара
 @app.route("/api/products", methods=["POST"])
@@ -337,6 +347,7 @@ def create_product():
     except Exception as e:
         print(f"Ошибка создания товара: {e}")
         return jsonify({"success": False, "message": str(e)}), 500
+
 
 # Обновление товара
 @app.route("/api/products/<int:product_id>", methods=["PUT"])
@@ -381,6 +392,7 @@ def update_product(product_id):
         print(f"Ошибка обновления товара: {e}")
         return jsonify({"success": False, "message": str(e)}), 500
 
+
 # Удаление товара
 @app.route("/api/products/<int:product_id>", methods=["DELETE"])
 def delete_product(product_id):
@@ -396,6 +408,7 @@ def delete_product(product_id):
     except Exception as e:
         print(f"Ошибка удаления товара: {e}")
         return jsonify({"success": False, "message": "Ошибка сервера"}), 500
+
 
 # Загрузка изображения для товара
 @app.route("/api/products/<int:product_id>/image", methods=["POST"])
@@ -419,6 +432,7 @@ def upload_product_image(product_id):
     except Exception as e:
         print(f"Ошибка загрузки изображения: {e}")
         return jsonify({"success": False, "message": str(e)}), 500
+
 
 # Получение изображения товара по id изображения
 @app.route("/api/product_image/<int:image_id>")
@@ -452,6 +466,7 @@ def get_product_image(image_id):
     except Exception as e:
         print(f"Ошибка получения изображения: {e}")
         return str(e), 500
+
 
 # Оформление заказа
 @app.route("/api/checkout", methods=["POST"])
@@ -515,6 +530,7 @@ def checkout():
         print(f"Ошибка при оформлении заказа: {e}")
         return jsonify({"success": False, "message": "Ошибка сервера"}), 500
 
+
 # Получение истории заказов
 @app.route("/api/orders", methods=["GET"])
 def get_orders():
@@ -562,6 +578,7 @@ def get_orders():
         print(f"Ошибка получения заказов: {e}")
         return jsonify({"success": False, "message": str(e)}), 500
 
+
 # Отмена заказа (клиент)
 @app.route("/api/order/cancel", methods=["POST", "OPTIONS"])
 def cancel_order():
@@ -601,6 +618,7 @@ def cancel_order():
         print(f"Ошибка при отмене заказа: {e}")
         return jsonify({"success": False, "message": "Ошибка сервера"}), 500
 
+
 # Админ список всех заказов
 @app.route("/api/admin/orders", methods=["GET"])
 def admin_get_orders():
@@ -631,6 +649,7 @@ def admin_get_orders():
         print(f"Ошибка получения заказов для админа: {e}")
         return jsonify({"success": False, "message": str(e)}), 500
 
+
 # Админ изменение статуса заказа
 @app.route("/api/admin/orders/<int:order_id>", methods=["PUT"])
 def admin_update_order(order_id):
@@ -646,6 +665,7 @@ def admin_update_order(order_id):
     except Exception as e:
         print(f"Ошибка обновления статуса заказа: {e}")
         return jsonify({"success": False, "message": str(e)}), 500
+
 
 # Админ удаление заказа (только отменённые)
 @app.route("/api/admin/orders/<int:order_id>", methods=["DELETE"])
@@ -665,6 +685,7 @@ def admin_delete_order(order_id):
     except Exception as e:
         print(f"Ошибка удаления заказа: {e}")
         return jsonify({"success": False, "message": str(e)}), 500
+
 
 # Админ получение состава заказа
 @app.route("/api/admin/orders/<int:order_id>/items", methods=["GET"])
@@ -690,6 +711,7 @@ def admin_get_order_items(order_id):
     except Exception as e:
         print(f"Ошибка получения состава заказа: {e}")
         return jsonify({"success": False, "message": str(e)}), 500
+
 
 # Отчёт о продажах (данные)
 @app.route("/api/reports/sales", methods=["GET"])
@@ -742,7 +764,8 @@ def sales_report():
         print(f"Ошибка генерации отчёта: {e}")
         return jsonify({"success": False, "message": "Ошибка сервера"}), 500
 
-# Отчёт о продажах (PDF)
+
+# Отчёт о продажах (PDF) – исправлены пути к шрифтам
 @app.route("/api/reports/sales/pdf", methods=["GET"])
 def sales_report_pdf():
     from_date = request.args.get('from_date')
@@ -793,11 +816,16 @@ def sales_report_pdf():
                 pdf = FPDF()
                 pdf.add_page()
 
-                arial_path = "C:/Windows/Fonts/arial.ttf"
-                arial_bd_path = "C:/Windows/Fonts/arialbd.ttf"
+                # ----- Пути к шрифтам (исправлено) -----
+                base_dir = os.path.dirname(os.path.abspath(__file__))
+                arial_path = os.path.join(base_dir, 'static', 'fonts', 'arial.ttf')
+                arial_bd_path = os.path.join(base_dir, 'static', 'fonts', 'arialbd.ttf')
 
                 if not os.path.exists(arial_path):
-                    return "Системный шрифт Arial не найден", 500
+                    return "Шрифт arial.ttf не найден на сервере", 500
+                if not os.path.exists(arial_bd_path):
+                    return "Шрифт arialbd.ttf не найден на сервере", 500
+                # ----------------------------------------
 
                 pdf.add_font('Arial', '', arial_path, uni=True)
                 if os.path.exists(arial_bd_path):
@@ -854,6 +882,7 @@ def sales_report_pdf():
         traceback.print_exc()
         return str(e), 500
 
+
 # Получение данных для прайс-листа
 @app.route("/api/price-list", methods=["GET"])
 def get_price_list():
@@ -899,7 +928,8 @@ def get_price_list():
         print(f"Ошибка получения прайс-листа: {e}")
         return jsonify({"success": False, "message": str(e)}), 500
 
-# PDF прайс-листа
+
+# PDF прайс-листа – исправлены пути к шрифтам
 @app.route("/api/price-list/pdf", methods=["GET"])
 def price_list_pdf():
     category_id = request.args.get('category_id', type=int)
@@ -945,11 +975,16 @@ def price_list_pdf():
                 pdf = FPDF()
                 pdf.add_page()
 
-                arial_path = "C:/Windows/Fonts/arial.ttf"
-                arial_bd_path = "C:/Windows/Fonts/arialbd.ttf"
+                # ----- Пути к шрифтам (исправлено) -----
+                base_dir = os.path.dirname(os.path.abspath(__file__))
+                arial_path = os.path.join(base_dir, 'static', 'fonts', 'arial.ttf')
+                arial_bd_path = os.path.join(base_dir, 'static', 'fonts', 'arialbd.ttf')
 
                 if not os.path.exists(arial_path):
-                    return "Системный шрифт Arial не найден", 500
+                    return "Шрифт arial.ttf не найден на сервере", 500
+                if not os.path.exists(arial_bd_path):
+                    return "Шрифт arialbd.ttf не найден на сервере", 500
+                # ----------------------------------------
 
                 pdf.add_font('Arial', '', arial_path, uni=True)
                 if os.path.exists(arial_bd_path):
@@ -1005,7 +1040,8 @@ def price_list_pdf():
         traceback.print_exc()
         return str(e), 500
 
-# накладная для клиента
+
+# Накладная для клиента – исправлены пути к шрифтам
 @app.route("/api/order/<int:order_id>/receipt", methods=["GET"])
 def order_receipt(order_id):
     user_id = request.args.get('user_id', type=int)
@@ -1042,10 +1078,16 @@ def order_receipt(order_id):
                 pdf = FPDF()
                 pdf.add_page()
 
-                arial_path = "C:/Windows/Fonts/arial.ttf"
-                arial_bd_path = "C:/Windows/Fonts/arialbd.ttf"
+                # ----- Пути к шрифтам (исправлено) -----
+                base_dir = os.path.dirname(os.path.abspath(__file__))
+                arial_path = os.path.join(base_dir, 'static', 'fonts', 'arial.ttf')
+                arial_bd_path = os.path.join(base_dir, 'static', 'fonts', 'arialbd.ttf')
+
                 if not os.path.exists(arial_path):
-                    return "Системный шрифт Arial не найден", 500
+                    return "Шрифт arial.ttf не найден на сервере", 500
+                if not os.path.exists(arial_bd_path):
+                    return "Шрифт arialbd.ttf не найден на сервере", 500
+                # ----------------------------------------
 
                 pdf.add_font('Arial', '', arial_path, uni=True)
                 if os.path.exists(arial_bd_path):
@@ -1112,6 +1154,7 @@ def order_receipt(order_id):
     except Exception as e:
         traceback.print_exc()
         return f"Ошибка сервера: {e}", 500
+
 
 if __name__ == "__main__":
     port = int(os.environ.get('PORT', 5000))

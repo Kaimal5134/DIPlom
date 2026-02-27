@@ -570,7 +570,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     closeBtn.className = 'close-modal';
                     closeBtn.innerHTML = '&times;';
                     closeBtn.onclick = () => {
-                        document.body.removeChild(modal);
+                        if (modal && modal.parentNode) {
+                            modal.parentNode.removeChild(modal);
+                        }
                         removeBodyLock();
                     };
                     content.appendChild(closeBtn);
@@ -667,7 +669,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     cancelBtn.style.color = 'var(--dark-gray)';
                     cancelBtn.textContent = 'Отмена';
                     cancelBtn.onclick = () => {
-                        document.body.removeChild(modal);
+                        if (modal && modal.parentNode) {
+                            modal.parentNode.removeChild(modal);
+                        }
                         removeBodyLock();
                     };
 
@@ -675,7 +679,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     payBtn.className = 'btn-primary';
                     payBtn.textContent = 'Оплатить';
                     payBtn.onclick = async () => {
-                        // Проверка способа оплаты
                         const paymentMethod = document.querySelector('input[name="payment"]:checked')?.value;
                         if (paymentMethod !== 'cash') {
                             alert('Оплата картой временно недоступна. Выберите наличные.');
@@ -689,7 +692,9 @@ document.addEventListener('DOMContentLoaded', function() {
                             return;
                         }
 
-                        document.body.removeChild(modal);
+                        if (modal && modal.parentNode) {
+                            modal.parentNode.removeChild(modal);
+                        }
                         removeBodyLock();
 
                         try {
@@ -728,8 +733,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
                     // Закрытие по клику на фон
                     modal.addEventListener('click', (e) => {
-                        if (e.target === modal) {
-                            document.body.removeChild(modal);
+                        if (e.target === modal && modal.parentNode) {
+                            modal.parentNode.removeChild(modal);
                             removeBodyLock();
                         }
                     });
@@ -846,7 +851,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 loadProductsWithFilters();
                 // Закрыть все модалки истории перед открытием новой
                 document.querySelectorAll('.orders-modal').forEach(el => {
-                    el.remove();
+                    if (el && el.parentNode) {
+                        el.parentNode.removeChild(el);
+                    }
                     removeBodyLock();
                 });
                 openOrdersModal();
@@ -925,7 +932,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
             // Закрыть предыдущие модалки
             document.querySelectorAll('.orders-modal').forEach(el => {
-                el.remove();
+                if (el && el.parentNode) {
+                    el.parentNode.removeChild(el);
+                }
                 removeBodyLock();
             });
 
@@ -961,7 +970,9 @@ document.addEventListener('DOMContentLoaded', function() {
             closeBtn.style.cursor = 'pointer';
             closeBtn.style.color = '#aaa';
             closeBtn.onclick = () => {
-                modal.remove();
+                if (modal && modal.parentNode) {
+                    modal.parentNode.removeChild(modal);
+                }
                 removeBodyLock();
             };
             content.appendChild(closeBtn);
@@ -1041,8 +1052,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
             // Закрытие по клику на фон
             modal.addEventListener('click', (e) => {
-                if (e.target === modal) {
-                    modal.remove();
+                if (e.target === modal && modal.parentNode) {
+                    modal.parentNode.removeChild(modal);
                     removeBodyLock();
                 }
             });

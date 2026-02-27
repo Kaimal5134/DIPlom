@@ -216,7 +216,9 @@ document.addEventListener('DOMContentLoaded', async function() {
             closeBtn.className = 'close-modal';
             closeBtn.innerHTML = '&times;';
             closeBtn.onclick = () => {
-                document.body.removeChild(modal);
+                if (modal && modal.parentNode) {
+                    modal.parentNode.removeChild(modal);
+                }
                 removeBodyLock();
             };
             content.appendChild(closeBtn);
@@ -332,7 +334,9 @@ document.addEventListener('DOMContentLoaded', async function() {
             });
 
             document.getElementById('cancelEditBtn').addEventListener('click', () => {
-                document.body.removeChild(modal);
+                if (modal && modal.parentNode) {
+                    modal.parentNode.removeChild(modal);
+                }
                 removeBodyLock();
             });
 
@@ -394,7 +398,9 @@ document.addEventListener('DOMContentLoaded', async function() {
                     const updateData = await updateResponse.json();
                     if (updateData.success) {
                         alert('Товар обновлён');
-                        document.body.removeChild(modal);
+                        if (modal && modal.parentNode) {
+                            modal.parentNode.removeChild(modal);
+                        }
                         removeBodyLock();
                         await loadProducts();
                         localStorage.setItem('productsUpdated', Date.now());
@@ -408,8 +414,8 @@ document.addEventListener('DOMContentLoaded', async function() {
             });
 
             modal.addEventListener('click', (e) => {
-                if (e.target === modal) {
-                    document.body.removeChild(modal);
+                if (e.target === modal && modal.parentNode) {
+                    modal.parentNode.removeChild(modal);
                     removeBodyLock();
                 }
             });
@@ -458,7 +464,9 @@ document.addEventListener('DOMContentLoaded', async function() {
             closeBtn.className = 'close-modal';
             closeBtn.innerHTML = '&times;';
             closeBtn.onclick = () => {
-                document.body.removeChild(modal);
+                if (modal && modal.parentNode) {
+                    modal.parentNode.removeChild(modal);
+                }
                 removeBodyLock();
             };
             content.appendChild(closeBtn);
@@ -570,7 +578,9 @@ document.addEventListener('DOMContentLoaded', async function() {
             });
 
             document.getElementById('cancelAddBtn').addEventListener('click', () => {
-                document.body.removeChild(modal);
+                if (modal && modal.parentNode) {
+                    modal.parentNode.removeChild(modal);
+                }
                 removeBodyLock();
             });
 
@@ -641,15 +651,17 @@ document.addEventListener('DOMContentLoaded', async function() {
                 }
 
                 alert('Товар успешно добавлен');
-                document.body.removeChild(modal);
+                if (modal && modal.parentNode) {
+                    modal.parentNode.removeChild(modal);
+                }
                 removeBodyLock();
                 await loadProducts();
                 localStorage.setItem('productsUpdated', Date.now());
             });
 
             modal.addEventListener('click', (e) => {
-                if (e.target === modal) {
-                    document.body.removeChild(modal);
+                if (e.target === modal && modal.parentNode) {
+                    modal.parentNode.removeChild(modal);
                     removeBodyLock();
                 }
             });
@@ -745,7 +757,9 @@ document.addEventListener('DOMContentLoaded', async function() {
         closeBtn.className = 'close-modal';
         closeBtn.innerHTML = '&times;';
         closeBtn.onclick = () => {
-            document.body.removeChild(modal);
+            if (modal && modal.parentNode) {
+                modal.parentNode.removeChild(modal);
+            }
             removeBodyLock();
         };
         content.appendChild(closeBtn);
@@ -774,7 +788,9 @@ document.addEventListener('DOMContentLoaded', async function() {
         addBodyLock();
 
         document.getElementById('cancelCatBtn').addEventListener('click', () => {
-            document.body.removeChild(modal);
+            if (modal && modal.parentNode) {
+                modal.parentNode.removeChild(modal);
+            }
             removeBodyLock();
         });
 
@@ -795,7 +811,9 @@ document.addEventListener('DOMContentLoaded', async function() {
                 const data = await response.json();
                 if (data.success) {
                     alert('Категория создана');
-                    document.body.removeChild(modal);
+                    if (modal && modal.parentNode) {
+                        modal.parentNode.removeChild(modal);
+                    }
                     removeBodyLock();
                     loadCategories();
                 } else {
@@ -808,8 +826,8 @@ document.addEventListener('DOMContentLoaded', async function() {
         });
 
         modal.addEventListener('click', (e) => {
-            if (e.target === modal) {
-                document.body.removeChild(modal);
+            if (e.target === modal && modal.parentNode) {
+                modal.parentNode.removeChild(modal);
                 removeBodyLock();
             }
         });
@@ -833,7 +851,9 @@ document.addEventListener('DOMContentLoaded', async function() {
         closeBtn.className = 'close-modal';
         closeBtn.innerHTML = '&times;';
         closeBtn.onclick = () => {
-            document.body.removeChild(modal);
+            if (modal && modal.parentNode) {
+                modal.parentNode.removeChild(modal);
+            }
             removeBodyLock();
         };
         content.appendChild(closeBtn);
@@ -862,7 +882,9 @@ document.addEventListener('DOMContentLoaded', async function() {
         addBodyLock();
 
         document.getElementById('cancelEditCatBtn').addEventListener('click', () => {
-            document.body.removeChild(modal);
+            if (modal && modal.parentNode) {
+                modal.parentNode.removeChild(modal);
+            }
             removeBodyLock();
         });
 
@@ -883,7 +905,9 @@ document.addEventListener('DOMContentLoaded', async function() {
                 const data = await response.json();
                 if (data.success) {
                     alert('Категория обновлена');
-                    document.body.removeChild(modal);
+                    if (modal && modal.parentNode) {
+                        modal.parentNode.removeChild(modal);
+                    }
                     removeBodyLock();
                     loadCategories();
                 } else {
@@ -896,8 +920,8 @@ document.addEventListener('DOMContentLoaded', async function() {
         });
 
         modal.addEventListener('click', (e) => {
-            if (e.target === modal) {
-                document.body.removeChild(modal);
+            if (e.target === modal && modal.parentNode) {
+                modal.parentNode.removeChild(modal);
                 removeBodyLock();
             }
         });
@@ -1047,7 +1071,9 @@ document.addEventListener('DOMContentLoaded', async function() {
             closeBtn.className = 'close-modal';
             closeBtn.innerHTML = '&times;';
             closeBtn.onclick = () => {
-                document.body.removeChild(modal);
+                if (modal && modal.parentNode) {
+                    modal.parentNode.removeChild(modal);
+                }
                 removeBodyLock();
             };
             content.appendChild(closeBtn);
@@ -1090,8 +1116,8 @@ document.addEventListener('DOMContentLoaded', async function() {
             addBodyLock();
 
             modal.addEventListener('click', (e) => {
-                if (e.target === modal) {
-                    document.body.removeChild(modal);
+                if (e.target === modal && modal.parentNode) {
+                    modal.parentNode.removeChild(modal);
                     removeBodyLock();
                 }
             });
