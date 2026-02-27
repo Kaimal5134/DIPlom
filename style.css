@@ -977,3 +977,7 @@ body {
     padding: 20px;
     overflow-x: auto;
 }
+
+body.modal-open {
+    overflow: hidden;
+}

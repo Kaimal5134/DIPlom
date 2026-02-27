@@ -1,4 +1,3 @@
-
 document.addEventListener('DOMContentLoaded', function() {
     // элементы для авторизации
     const authBtn = document.getElementById('authBtn');
@@ -62,6 +61,33 @@ document.addEventListener('DOMContentLoaded', function() {
     const emailInput = document.getElementById('email');
 
     let mode = 'login';
+
+    // счётчик открытых модальных окон для блокировки скролла
+    let modalCounter = 0;
+
+    function addBodyLock() {
+        modalCounter++;
+        if (modalCounter === 1) {
+            document.body.classList.add('modal-open');
+        }
+    }
+
+    function removeBodyLock() {
+        if (modalCounter > 0) {
+            modalCounter--;
+            if (modalCounter === 0) {
+                document.body.classList.remove('modal-open');
+            }
+        }
+    }
+
+    function containsWhitespace(str) {
+        return /\s/.test(str);
+    }
+
+    function isValidEmail(email) {
+        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    }
 
     function setMode(newMode) {
         mode = newMode;
@@ -169,6 +195,9 @@ document.addEventListener('DOMContentLoaded', function() {
             cart = [];
             saveCart();
             updateCartUI();
+
+            // перезагрузить каталог с обычным режимом
+            loadProductsWithFilters();
         }
     });
 
@@ -208,6 +237,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 alert('Заполните все поля');
                 return;
             }
+            if (containsWhitespace(login) || containsWhitespace(password)) {
+                alert('Логин и пароль не должны содержать пробелов');
+                return;
+            }
             try {
                 const res = await fetch('http://127.0.0.1:5000/api/login', {
                     method: 'POST',
@@ -241,6 +274,14 @@ document.addEventListener('DOMContentLoaded', function() {
             const email = emailInput.value.trim();
             if (!login || !password || !fio || !email) {
                 alert('Заполните все поля');
+                return;
+            }
+            if (containsWhitespace(login) || containsWhitespace(password) || containsWhitespace(email)) {
+                alert('Логин, пароль и email не должны содержать пробелов');
+                return;
+            }
+            if (!isValidEmail(email)) {
+                alert('Введите корректный email (например, name@mail.ru)');
                 return;
             }
             try {
@@ -398,7 +439,10 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function closeProductModal() {
-        if (modal) modal.style.display = 'none';
+        if (modal) {
+            removeBodyLock();
+            modal.style.display = 'none';
+        }
     }
     if (closeModal) closeModal.addEventListener('click', closeProductModal);
     window.addEventListener('click', (e) => {
@@ -438,6 +482,7 @@ document.addEventListener('DOMContentLoaded', function() {
             addToCartBtn.textContent = (product.Col_Product <= 0) ? 'Нет в наличии' : 'Добавить в корзину';
         }
         modal.style.display = 'flex';
+        addBodyLock();
     }
 
     // корзина
@@ -524,7 +569,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     const closeBtn = document.createElement('span');
                     closeBtn.className = 'close-modal';
                     closeBtn.innerHTML = '&times;';
-                    closeBtn.onclick = () => document.body.removeChild(modal);
+                    closeBtn.onclick = () => {
+                        document.body.removeChild(modal);
+                        removeBodyLock();
+                    };
                     content.appendChild(closeBtn);
 
                     const title = document.createElement('h2');
@@ -585,6 +633,20 @@ document.addEventListener('DOMContentLoaded', function() {
                     itemsDiv.appendChild(table);
                     content.appendChild(itemsDiv);
 
+                    // Блок выбора способа оплаты
+                    const paymentDiv = document.createElement('div');
+                    paymentDiv.style.marginBottom = '20px';
+                    paymentDiv.innerHTML = `
+                        <label style="display:block; margin-bottom:5px; font-weight:bold;">Способ оплаты:</label>
+                        <label style="margin-right:15px;">
+                            <input type="radio" name="payment" value="cash" checked> Наличными
+                        </label>
+                        <label>
+                            <input type="radio" name="payment" value="card" disabled> Картой (недоступно)
+                        </label>
+                    `;
+                    content.appendChild(paymentDiv);
+
                     const addressDiv = document.createElement('div');
                     addressDiv.style.marginBottom = '20px';
                     addressDiv.innerHTML = `
@@ -604,12 +666,22 @@ document.addEventListener('DOMContentLoaded', function() {
                     cancelBtn.style.backgroundColor = 'var(--light-gray)';
                     cancelBtn.style.color = 'var(--dark-gray)';
                     cancelBtn.textContent = 'Отмена';
-                    cancelBtn.onclick = () => document.body.removeChild(modal);
+                    cancelBtn.onclick = () => {
+                        document.body.removeChild(modal);
+                        removeBodyLock();
+                    };
 
                     const payBtn = document.createElement('button');
                     payBtn.className = 'btn-primary';
                     payBtn.textContent = 'Оплатить';
                     payBtn.onclick = async () => {
+                        // Проверка способа оплаты
+                        const paymentMethod = document.querySelector('input[name="payment"]:checked')?.value;
+                        if (paymentMethod !== 'cash') {
+                            alert('Оплата картой временно недоступна. Выберите наличные.');
+                            return;
+                        }
+
                         const addressInput = document.getElementById('addressInput');
                         const address = addressInput?.value.trim();
                         if (!address) {
@@ -618,8 +690,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         }
 
                         document.body.removeChild(modal);
-
-                        alert('Для демонстрации дипломной работы оплата реализована таким образом. Заказ будет оформлен.');
+                        removeBodyLock();
 
                         try {
                             const response = await fetch('http://127.0.0.1:5000/api/checkout', {
@@ -628,7 +699,8 @@ document.addEventListener('DOMContentLoaded', function() {
                                 body: JSON.stringify({
                                     user_id: user.client.id_clients,
                                     items: cart.map(item => ({ id: item.id, quantity: item.quantity })),
-                                    address: address
+                                    address: address,
+                                    payment_method: paymentMethod
                                 })
                             });
                             const data = await response.json();
@@ -652,6 +724,15 @@ document.addEventListener('DOMContentLoaded', function() {
                     content.appendChild(buttonsDiv);
                     modal.appendChild(content);
                     document.body.appendChild(modal);
+                    addBodyLock();
+
+                    // Закрытие по клику на фон
+                    modal.addEventListener('click', (e) => {
+                        if (e.target === modal) {
+                            document.body.removeChild(modal);
+                            removeBodyLock();
+                        }
+                    });
                 });
             }
         }
@@ -763,7 +844,11 @@ document.addEventListener('DOMContentLoaded', function() {
             if (data.success) {
                 alert('Заказ успешно отменён');
                 loadProductsWithFilters();
-                document.querySelectorAll('.orders-modal').forEach(el => el.remove());
+                // Закрыть все модалки истории перед открытием новой
+                document.querySelectorAll('.orders-modal').forEach(el => {
+                    el.remove();
+                    removeBodyLock();
+                });
                 openOrdersModal();
             } else {
                 alert('Ошибка: ' + data.message);
@@ -802,7 +887,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const downloadUrl = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = downloadUrl;
-            a.download = `nakladnaya_${orderId}.pdf`; // имя файла для сохранения
+            a.download = `nakladnaya_${orderId}.pdf`;
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
@@ -838,7 +923,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
 
-            document.querySelectorAll('.orders-modal').forEach(el => el.remove());
+            // Закрыть предыдущие модалки
+            document.querySelectorAll('.orders-modal').forEach(el => {
+                el.remove();
+                removeBodyLock();
+            });
 
             const modal = document.createElement('div');
             modal.className = 'orders-modal';
@@ -871,7 +960,10 @@ document.addEventListener('DOMContentLoaded', function() {
             closeBtn.style.fontSize = '30px';
             closeBtn.style.cursor = 'pointer';
             closeBtn.style.color = '#aaa';
-            closeBtn.onclick = () => modal.remove();
+            closeBtn.onclick = () => {
+                modal.remove();
+                removeBodyLock();
+            };
             content.appendChild(closeBtn);
 
             const title = document.createElement('h2');
@@ -945,6 +1037,15 @@ document.addEventListener('DOMContentLoaded', function() {
             content.appendChild(listDiv);
             modal.appendChild(content);
             document.body.appendChild(modal);
+            addBodyLock();
+
+            // Закрытие по клику на фон
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    modal.remove();
+                    removeBodyLock();
+                }
+            });
         } catch (err) {
             console.error(err);
             alert('Ошибка соединения с сервером');
