@@ -242,7 +242,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
             try {
-                const res = await fetch('http://127.0.0.1:5000/api/login', {
+                const res = await fetch('/api/login', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ login, password })
@@ -285,7 +285,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
             try {
-                const res = await fetch('http://127.0.0.1:5000/api/register', {
+                const res = await fetch('/api/register', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ login, password, fio, email })
@@ -308,7 +308,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // каталог товаров 
     async function loadCategories() {
         try {
-            const res = await fetch('http://127.0.0.1:5000/api/categories');
+            const res = await fetch('/api/categories');
             if (!res.ok) throw new Error(`HTTP error ${res.status}`);
             const data = await res.json();
             if (data.success) {
@@ -330,7 +330,7 @@ document.addEventListener('DOMContentLoaded', function() {
     async function loadProductsWithFilters() {
         const search = document.getElementById('searchInput')?.value.trim() || '';
         const category = document.getElementById('categorySelect')?.value || '';
-        let url = 'http://127.0.0.1:5000/api/products?';
+        let url = '/api/products?';
         const params = [];
         if (search) params.push(`search=${encodeURIComponent(search)}`);
         if (category) params.push(`category=${encodeURIComponent(category)}`);
@@ -693,7 +693,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         removeBodyLock();
 
                         try {
-                            const response = await fetch('http://127.0.0.1:5000/api/checkout', {
+                            const response = await fetch('/api/checkout', {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json' },
                                 body: JSON.stringify({
@@ -832,7 +832,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!confirm('Вы уверены, что хотите отменить заказ?')) return;
 
         try {
-            const response = await fetch('http://127.0.0.1:5000/api/order/cancel', {
+            const response = await fetch('/api/order/cancel', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -872,7 +872,7 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        const url = new URL(`http://127.0.0.1:5000/api/order/${orderId}/receipt`);
+        const url = new URL(`/api/order/${orderId}/receipt`, window.location.origin);
         url.searchParams.append('user_id', user.client.id_clients);
         url.searchParams.append('_', Date.now());
 
@@ -914,7 +914,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         try {
-            const response = await fetch(`http://127.0.0.1:5000/api/orders?user_id=${user.client.id_clients}`);
+            const response = await fetch(`/api/orders?user_id=${user.client.id_clients}`);
             if (!response.ok) throw new Error(`HTTP error ${response.status}`);
             const data = await response.json();
             console.log('Данные заказов:', data);

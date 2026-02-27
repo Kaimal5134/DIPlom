@@ -1,4 +1,5 @@
-from flask import Flask, request, jsonify, send_file, render_template_string
+import os
+from flask import Flask, request, jsonify, send_file, send_from_directory
 from flask_cors import CORS
 from bd import db_connection
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -6,13 +7,26 @@ import pymysql
 import io
 from datetime import datetime
 from fpdf import FPDF
-import os
 import traceback
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder='static')
 CORS(app)
 
-# Авторизация 
+
+@app.route('/')
+def serve_index():
+    return send_from_directory('static', 'index.html')
+
+@app.route('/admin.html')
+def serve_admin():
+    return send_from_directory('static', 'admin.html')
+
+@app.route('/<path:path>')
+def serve_static(path):
+    return send_from_directory('static', path)
+
+
+# Авторизация
 @app.route("/api/login", methods=["POST"])
 def login():
     data = request.get_json()
@@ -70,7 +84,7 @@ def login():
         print(f"Ошибка при авторизации: {e}")
         return jsonify({"success": False, "message": "Ошибка сервера"}), 500
 
-# Регистрация 
+# Регистрация
 @app.route("/api/register", methods=["POST"])
 def register():
     data = request.get_json()
@@ -119,7 +133,7 @@ def register():
         print(f"Ошибка при регистрации: {e}")
         return jsonify({"success": False, "message": "Ошибка сервера"}), 500
 
-# Категории товаров 
+# Категории товаров (имена)
 @app.route("/api/categories", methods=["GET"])
 def get_categories():
     try:
@@ -133,7 +147,7 @@ def get_categories():
         print(f"Ошибка получения категорий: {e}")
         return jsonify({"success": False, "message": str(e)}), 500
 
-# Категории id для админа
+# Категории с id для админа
 @app.route("/api/categories_with_id", methods=["GET"])
 def get_categories_with_id():
     try:
@@ -146,7 +160,7 @@ def get_categories_with_id():
         print(f"Ошибка получения категорий: {e}")
         return jsonify({"success": False, "message": str(e)}), 500
 
-# Создание категории 
+# Создание категории
 @app.route("/api/categories", methods=["POST"])
 def create_category():
     data = request.get_json()
@@ -166,7 +180,7 @@ def create_category():
         print(f"Ошибка создания категории: {e}")
         return jsonify({"success": False, "message": "Ошибка сервера"}), 500
 
-# Обновление категории 
+# Обновление категории
 @app.route("/api/categories/<int:category_id>", methods=["PUT"])
 def update_category(category_id):
     data = request.get_json()
@@ -188,7 +202,7 @@ def update_category(category_id):
         print(f"Ошибка обновления категории: {e}")
         return jsonify({"success": False, "message": "Ошибка сервера"}), 500
 
-# Удаление категории 
+# Удаление категории
 @app.route("/api/categories/<int:category_id>", methods=["DELETE"])
 def delete_category(category_id):
     try:
@@ -205,7 +219,7 @@ def delete_category(category_id):
         print(f"Ошибка удаления категории: {e}")
         return jsonify({"success": False, "message": "Ошибка сервера"}), 500
 
-# Список товаров с фильтрацией 
+# Список товаров с фильтрацией
 @app.route("/api/products", methods=["GET"])
 def get_products():
     search = request.args.get('search', '')
@@ -241,7 +255,8 @@ def get_products():
                 products = cursor.fetchall()
                 for product in products:
                     if product['image_id']:
-                        product['image_url'] = f"http://127.0.0.1:5000/api/product_image/{product['image_id']}"
+                        # Формируем URL 
+                        product['image_url'] = request.host_url.rstrip('/') + f"/api/product_image/{product['image_id']}"
                     else:
                         product['image_url'] = None
                     del product['image_id']
@@ -250,7 +265,7 @@ def get_products():
         print(f"Ошибка получения товаров: {e}")
         return jsonify({"success": False, "message": str(e)}), 500
 
-# Получение одного товара 
+# Получение одного товара
 @app.route("/api/products/<int:product_id>", methods=["GET"])
 def get_product(product_id):
     try:
@@ -272,7 +287,7 @@ def get_product(product_id):
                 if not product:
                     return jsonify({"success": False, "message": "Товар не найден"}), 404
                 if product['image_id']:
-                    product['image_url'] = f"http://127.0.0.1:5000/api/product_image/{product['image_id']}"
+                    product['image_url'] = request.host_url.rstrip('/') + f"/api/product_image/{product['image_id']}"
                 else:
                     product['image_url'] = None
                 del product['image_id']
@@ -281,7 +296,7 @@ def get_product(product_id):
         print(f"Ошибка получения товара: {e}")
         return jsonify({"success": False, "message": str(e)}), 500
 
-# Создание товара 
+# Создание товара
 @app.route("/api/products", methods=["POST"])
 def create_product():
     data = request.get_json()
@@ -323,7 +338,7 @@ def create_product():
         print(f"Ошибка создания товара: {e}")
         return jsonify({"success": False, "message": str(e)}), 500
 
-# Обновление товара 
+# Обновление товара
 @app.route("/api/products/<int:product_id>", methods=["PUT"])
 def update_product(product_id):
     data = request.get_json()
@@ -533,7 +548,7 @@ def get_orders():
                         "status": order['status'],
                         "total": float(order['total_price']),
                         "address": order['delivery_address'],
-                        "state_id": order['id_state'],  
+                        "state_id": order['id_state'],
                         "items": [{
                             "name": item['Name_Product'],
                             "quantity": item['quantity'],
@@ -569,7 +584,6 @@ def cancel_order():
                     return jsonify({"success": False, "message": "Заказ не найден"}), 404
                 if order['id_clients'] != user_id:
                     return jsonify({"success": False, "message": "Нет прав на отмену этого заказа"}), 403
-                # Разрешена отмена только для статуса 1 (Заказ оформлен и оплачен)
                 if order['id_state'] != 1:
                     return jsonify({"success": False, "message": "Данный заказ уже нельзя отменить"}), 400
 
@@ -617,7 +631,7 @@ def admin_get_orders():
         print(f"Ошибка получения заказов для админа: {e}")
         return jsonify({"success": False, "message": str(e)}), 500
 
-# Админ изменение статуса заказа 
+# Админ изменение статуса заказа
 @app.route("/api/admin/orders/<int:order_id>", methods=["PUT"])
 def admin_update_order(order_id):
     data = request.get_json()
@@ -652,7 +666,7 @@ def admin_delete_order(order_id):
         print(f"Ошибка удаления заказа: {e}")
         return jsonify({"success": False, "message": str(e)}), 500
 
-# Админ получение состава заказа 
+# Админ получение состава заказа
 @app.route("/api/admin/orders/<int:order_id>/items", methods=["GET"])
 def admin_get_order_items(order_id):
     try:
@@ -677,7 +691,7 @@ def admin_get_order_items(order_id):
         print(f"Ошибка получения состава заказа: {e}")
         return jsonify({"success": False, "message": str(e)}), 500
 
-# Отчёт о продажах 
+# Отчёт о продажах (данные)
 @app.route("/api/reports/sales", methods=["GET"])
 def sales_report():
     from_date = request.args.get('from_date')
@@ -728,7 +742,7 @@ def sales_report():
         print(f"Ошибка генерации отчёта: {e}")
         return jsonify({"success": False, "message": "Ошибка сервера"}), 500
 
-# Отчёт о продажах (PDF) с fpdf2 
+# Отчёт о продажах (PDF)
 @app.route("/api/reports/sales/pdf", methods=["GET"])
 def sales_report_pdf():
     from_date = request.args.get('from_date')
@@ -837,10 +851,8 @@ def sales_report_pdf():
                     mimetype='application/pdf'
                 )
     except Exception as e:
-        import traceback
-        error_details = traceback.format_exc()
-        print(error_details)
-        return error_details, 500
+        traceback.print_exc()
+        return str(e), 500
 
 # Получение данных для прайс-листа
 @app.route("/api/price-list", methods=["GET"])
@@ -887,7 +899,7 @@ def get_price_list():
         print(f"Ошибка получения прайс-листа: {e}")
         return jsonify({"success": False, "message": str(e)}), 500
 
-# PDF прайс-листа 
+# PDF прайс-листа
 @app.route("/api/price-list/pdf", methods=["GET"])
 def price_list_pdf():
     category_id = request.args.get('category_id', type=int)
@@ -990,12 +1002,10 @@ def price_list_pdf():
                     mimetype='application/pdf'
                 )
     except Exception as e:
-        import traceback
-        error_details = traceback.format_exc()
-        print(error_details)
-        return error_details, 500
+        traceback.print_exc()
+        return str(e), 500
 
-# Генерация накладной для клиента
+# накладная для клиента
 @app.route("/api/order/<int:order_id>/receipt", methods=["GET"])
 def order_receipt(order_id):
     user_id = request.args.get('user_id', type=int)
@@ -1005,7 +1015,6 @@ def order_receipt(order_id):
     try:
         with db_connection() as conn:
             with conn.cursor() as cursor:
-                # Получаем информацию о заказе и клиенте
                 cursor.execute("""
                     SELECT o.idOrder, o.date_order, o.total_price, o.id_state,
                            c.FIO, c.Email_clients, o.delivery_address
@@ -1017,11 +1026,9 @@ def order_receipt(order_id):
                 if not order:
                     return "Заказ не найден или доступ запрещён", 404
 
-                # Проверяем, что заказ не отменён 
                 if order['id_state'] == 5:
                     return "Невозможно сгенерировать накладную для отменённого заказа", 400
 
-                # Получаем позиции заказа
                 cursor.execute("""
                     SELECT p.Name_Product, oi.quantity, oi.price, oi.subtotal, p.Guarantee
                     FROM Order_items oi
@@ -1032,7 +1039,6 @@ def order_receipt(order_id):
                 if not items:
                     return "Заказ не содержит товаров", 404
 
-                # Создаём PDF
                 pdf = FPDF()
                 pdf.add_page()
 
@@ -1049,7 +1055,6 @@ def order_receipt(order_id):
 
                 pdf.set_font('Arial', '', 10)
 
-                # Заголовок
                 pdf.set_font('Arial', 'B', 16)
                 pdf.cell(0, 10, 'Накладная', ln=True, align='C')
                 pdf.ln(5)
@@ -1058,7 +1063,6 @@ def order_receipt(order_id):
                 pdf.cell(0, 10, f'Заказ №{order["idOrder"]} от {order["date_order"].strftime("%d.%m.%Y")}', ln=True, align='C')
                 pdf.ln(5)
 
-                # Информация о клиенте
                 pdf.set_font('Arial', 'B', 10)
                 pdf.cell(0, 10, 'Покупатель:', ln=True)
                 pdf.set_font('Arial', '', 10)
@@ -1068,7 +1072,6 @@ def order_receipt(order_id):
                     pdf.cell(0, 8, f'Адрес доставки: {order["delivery_address"]}', ln=True)
                 pdf.ln(5)
 
-                # Таблица товаров
                 pdf.set_font('Arial', 'B', 9)
                 headers = ['Наименование', 'Кол-во', 'Цена', 'Гарантия', 'Сумма']
                 col_widths = [80, 20, 30, 30, 30]
@@ -1107,9 +1110,9 @@ def order_receipt(order_id):
                     mimetype='application/pdf'
                 )
     except Exception as e:
-        import traceback
         traceback.print_exc()
         return f"Ошибка сервера: {e}", 500
 
 if __name__ == "__main__":
-    app.run(debug=True, host="0.0.0.0", port=5000)
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port, debug=False)

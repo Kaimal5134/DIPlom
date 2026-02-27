@@ -1,19 +1,23 @@
-
+import os
 import pymysql
 from pymysql.cursors import DictCursor
 from contextlib import contextmanager
 
-# Подключение к бд
-DB_CONFIG = {
-    "host": "91.222.238.6", # хост бд
-    "user": "Timofeev", # пользователь
-    "password": "Timofeev_pass", # пароль
-    "database": "Timofeev_diplom", # имя базы
-    "port": 3306, # порт 
-    "cursorclass": DictCursor, # чтобы результаты были в виде словарей
-    "autocommit": True, # автоматически сохранять изменения
-    "charset": "utf8mb4"
-}
+def get_db_config():
+    """Получить конфигурацию подключения к БД из переменных окружения."""
+    return {
+        "host": os.environ.get("DB_HOST", "91.222.238.6"),        
+        "user": os.environ.get("DB_USER", "Timofeev"),
+        "password": os.environ.get("DB_PASSWORD", "Timofeev_pass"),
+        "database": os.environ.get("DB_NAME", "Timofeev_diplom"),
+        "port": int(os.environ.get("DB_PORT", 3306)),
+        "cursorclass": DictCursor,
+        "autocommit": True,
+        "charset": "utf8mb4"
+    }
+
+# Формируем конфигурацию при запуске модуля
+DB_CONFIG = get_db_config()
 
 @contextmanager
 def db_connection():
@@ -32,4 +36,3 @@ def db_connection():
     finally:
         if conn:
             conn.close()
-

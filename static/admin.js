@@ -101,7 +101,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         tbody.innerHTML = '<tr><td colspan="8">Загрузка...</td></tr>';
 
         try {
-            const response = await fetch('http://127.0.0.1:5000/api/products');
+            const response = await fetch('/api/products');
             if (!response.ok) throw new Error('Ошибка загрузки');
             const data = await response.json();
             if (!data.success) throw new Error(data.message || 'Неизвестная ошибка');
@@ -147,7 +147,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                     if (!confirm(`Вы уверены, что хотите удалить товар #${id}?`)) return;
 
                     try {
-                        const response = await fetch(`http://127.0.0.1:5000/api/products/${id}`, {
+                        const response = await fetch(`/api/products/${id}`, {
                             method: 'DELETE'
                         });
                         const data = await response.json();
@@ -174,13 +174,13 @@ document.addEventListener('DOMContentLoaded', async function() {
     // Модальное окно редактирования товара
     async function openEditModal(productId) {
         try {
-            const prodResponse = await fetch(`http://127.0.0.1:5000/api/products/${productId}`);
+            const prodResponse = await fetch(`/api/products/${productId}`);
             if (!prodResponse.ok) throw new Error('Ошибка загрузки товара');
             const prodData = await prodResponse.json();
             if (!prodData.success) throw new Error(prodData.message);
             const product = prodData.product;
 
-            const catResponse = await fetch('http://127.0.0.1:5000/api/categories_with_id');
+            const catResponse = await fetch('/api/categories_with_id');
             const catData = await catResponse.json();
             if (!catData.success) throw new Error('Ошибка загрузки категорий');
 
@@ -363,7 +363,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                     const formData = new FormData();
                     formData.append('file', file);
                     try {
-                        const uploadResponse = await fetch(`http://127.0.0.1:5000/api/products/${productId}/image`, {
+                        const uploadResponse = await fetch(`/api/products/${productId}/image`, {
                             method: 'POST',
                             body: formData
                         });
@@ -380,7 +380,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                 }
 
                 try {
-                    const updateResponse = await fetch(`http://127.0.0.1:5000/api/products/${productId}`, {
+                    const updateResponse = await fetch(`/api/products/${productId}`, {
                         method: 'PUT',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
@@ -423,7 +423,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     // Модальное окно добавления товара
     async function openAddModal() {
         try {
-            const catResponse = await fetch('http://127.0.0.1:5000/api/categories_with_id');
+            const catResponse = await fetch('/api/categories_with_id');
             const catData = await catResponse.json();
             if (!catData.success) throw new Error('Ошибка загрузки категорий');
 
@@ -598,7 +598,7 @@ document.addEventListener('DOMContentLoaded', async function() {
 
                 let newProductId;
                 try {
-                    const createResponse = await fetch('http://127.0.0.1:5000/api/products', {
+                    const createResponse = await fetch('/api/products', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
@@ -626,7 +626,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                     const formData = new FormData();
                     formData.append('file', file);
                     try {
-                        const uploadResponse = await fetch(`http://127.0.0.1:5000/api/products/${newProductId}/image`, {
+                        const uploadResponse = await fetch(`/api/products/${newProductId}/image`, {
                             method: 'POST',
                             body: formData
                         });
@@ -666,7 +666,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         tbody.innerHTML = '<tr><td colspan="3">Загрузка...</td></tr>';
 
         try {
-            const response = await fetch('http://127.0.0.1:5000/api/categories_with_id');
+            const response = await fetch('/api/categories_with_id');
             if (!response.ok) throw new Error('Ошибка загрузки');
             const data = await response.json();
             if (!data.success) throw new Error(data.message || 'Неизвестная ошибка');
@@ -704,7 +704,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                     if (!confirm(`Вы уверены, что хотите удалить категорию?`)) return;
 
                     try {
-                        const response = await fetch(`http://127.0.0.1:5000/api/categories/${id}`, {
+                        const response = await fetch(`/api/categories/${id}`, {
                             method: 'DELETE'
                         });
                         const data = await response.json();
@@ -787,7 +787,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             }
 
             try {
-                const response = await fetch('http://127.0.0.1:5000/api/categories', {
+                const response = await fetch('/api/categories', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ name })
@@ -875,7 +875,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             }
 
             try {
-                const response = await fetch(`http://127.0.0.1:5000/api/categories/${id}`, {
+                const response = await fetch(`/api/categories/${id}`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ name })
@@ -909,7 +909,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         tbody.innerHTML = '<tr><td colspan="8">Загрузка...</td></tr>';
 
         try {
-            const response = await fetch('http://127.0.0.1:5000/api/admin/orders');
+            const response = await fetch('/api/admin/orders');
             if (!response.ok) throw new Error('Ошибка загрузки');
             const data = await response.json();
             if (!data.success) throw new Error(data.message || 'Неизвестная ошибка');
@@ -956,7 +956,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                         return;
                     }
                     try {
-                        const response = await fetch(`http://127.0.0.1:5000/api/admin/orders/${orderId}`, {
+                        const response = await fetch(`/api/admin/orders/${orderId}`, {
                             method: 'PUT',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({ state_id: parseInt(newState) })
@@ -998,7 +998,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                     if (!confirm(`Вы уверены, что хотите удалить заказ №${orderId}?`)) return;
 
                     try {
-                        const response = await fetch(`http://127.0.0.1:5000/api/admin/orders/${orderId}`, {
+                        const response = await fetch(`/api/admin/orders/${orderId}`, {
                             method: 'DELETE'
                         });
                         const data = await response.json();
@@ -1024,7 +1024,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     // Функция отображения состава заказа
     async function showOrderItems(orderId) {
         try {
-            const response = await fetch(`http://127.0.0.1:5000/api/admin/orders/${orderId}/items`);
+            const response = await fetch(`/api/admin/orders/${orderId}/items`);
             const data = await response.json();
             if (!data.success) {
                 alert('Ошибка загрузки состава: ' + data.message);
@@ -1107,7 +1107,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         const select = document.getElementById('reportCategory');
         select.innerHTML = '<option value="">Все категории</option>';
         try {
-            const response = await fetch('http://127.0.0.1:5000/api/categories_with_id');
+            const response = await fetch('/api/categories_with_id');
             const data = await response.json();
             if (data.success) {
                 data.categories.forEach(cat => {
@@ -1136,7 +1136,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         resultDiv.innerHTML = '<p>Загрузка...</p>';
 
         try {
-            const url = new URL('http://127.0.0.1:5000/api/reports/sales');
+            const url = new URL('/api/reports/sales', window.location.origin);
             url.searchParams.append('from_date', fromDate);
             url.searchParams.append('to_date', toDate);
             if (categoryId) url.searchParams.append('category_id', categoryId);
@@ -1207,7 +1207,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             return;
         }
 
-        const url = new URL('http://127.0.0.1:5000/api/reports/sales/pdf');
+        const url = new URL('/api/reports/sales/pdf', window.location.origin);
         url.searchParams.append('from_date', fromDate);
         url.searchParams.append('to_date', toDate);
         if (categoryId) url.searchParams.append('category_id', categoryId);
@@ -1240,7 +1240,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         const select = document.getElementById('plCategory');
         select.innerHTML = '<option value="">Все категории</option>';
         try {
-            const response = await fetch('http://127.0.0.1:5000/api/categories_with_id');
+            const response = await fetch('/api/categories_with_id');
             const data = await response.json();
             if (data.success) {
                 data.categories.forEach(cat => {
@@ -1263,7 +1263,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         resultDiv.innerHTML = '<p>Загрузка...</p>';
 
         try {
-            const url = new URL('http://127.0.0.1:5000/api/price-list');
+            const url = new URL('/api/price-list', window.location.origin);
             if (categoryId) url.searchParams.append('category_id', categoryId);
             if (onlyInStock) url.searchParams.append('only_in_stock', 'true');
 
@@ -1317,7 +1317,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         const categoryId = document.getElementById('plCategory').value;
         const onlyInStock = document.getElementById('plOnlyInStock').checked;
 
-        const url = new URL('http://127.0.0.1:5000/api/price-list/pdf');
+        const url = new URL('/api/price-list/pdf', window.location.origin);
         if (categoryId) url.searchParams.append('category_id', categoryId);
         if (onlyInStock) url.searchParams.append('only_in_stock', 'true');
         url.searchParams.append('_', Date.now());
