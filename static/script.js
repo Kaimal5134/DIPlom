@@ -1077,6 +1077,14 @@ document.addEventListener('DOMContentLoaded', function() {
         searchInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') loadProductsWithFilters();
         });
+        // Добавляем живой поиск с debounce
+        let searchTimeout;
+        searchInput.addEventListener('input', () => {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                loadProductsWithFilters();
+            }, 300);
+        });
     }
     if (categorySelect) categorySelect.addEventListener('change', loadProductsWithFilters);
 });
