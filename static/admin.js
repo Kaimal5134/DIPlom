@@ -1,4 +1,48 @@
 document.addEventListener('DOMContentLoaded', async function() {
+    // уведомления 
+    function showNotification(message, type = 'info') {
+        const notif = document.createElement('div');
+        notif.className = `notification ${type}`;
+        notif.textContent = message;
+        document.body.appendChild(notif);
+        setTimeout(() => notif.classList.add('show'), 10);
+        setTimeout(() => {
+            notif.classList.remove('show');
+            setTimeout(() => notif.remove(), 300);
+        }, 3000);
+    }
+
+    function showConfirm(message) {
+        return new Promise((resolve) => {
+            const modal = document.createElement('div');
+            modal.className = 'confirm-modal';
+            modal.innerHTML = `
+                <div class="confirm-content">
+                    <p>${message}</p>
+                    <div class="confirm-buttons">
+                        <button class="confirm-yes">Да</button>
+                        <button class="confirm-no">Нет</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+            modal.querySelector('.confirm-yes').onclick = () => {
+                modal.remove();
+                resolve(true);
+            };
+            modal.querySelector('.confirm-no').onclick = () => {
+                modal.remove();
+                resolve(false);
+            };
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    modal.remove();
+                    resolve(false);
+                }
+            });
+        });
+    }
+
     // Проверка прав доступа
     const userData = localStorage.getItem('user');
     if (!userData) {
@@ -7,12 +51,12 @@ document.addEventListener('DOMContentLoaded', async function() {
     }
     const user = JSON.parse(userData);
     if (!user.role || user.role.toLowerCase() !== 'admin') {
-        alert('Доступ запрещён');
+        showNotification('Доступ запрещён', 'error');
         window.location.href = 'index.html';
         return;
     }
 
-    // Счётчик открытых модальных окон для блокировки скролла
+    // Счётчик открытых модальных окон 
     let modalCounter = 0;
 
     function addBodyLock() {
@@ -98,7 +142,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     // товары
     async function loadProducts() {
         const tbody = document.getElementById('productsTableBody');
-        tbody.innerHTML = '<tr><td colspan="8">Загрузка...</td></tr>';
+        tbody.innerHTML = '<td><td colspan="8">Загрузка...</td></tr>';
 
         try {
             const response = await fetch('/api/products');
@@ -107,7 +151,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             if (!data.success) throw new Error(data.message || 'Неизвестная ошибка');
 
             if (data.products.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="8">Товары не найдены</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="8">Товары не найдены</tr>';
                 return;
             }
 
@@ -144,7 +188,8 @@ document.addEventListener('DOMContentLoaded', async function() {
             document.querySelectorAll('.delete-btn').forEach(btn => {
                 btn.addEventListener('click', async (e) => {
                     const id = e.currentTarget.dataset.id;
-                    if (!confirm(`Вы уверены, что хотите удалить товар #${id}?`)) return;
+                    const confirmed = await showConfirm(`Вы уверены, что хотите удалить товар #${id}?`);
+                    if (!confirmed) return;
 
                     try {
                         const response = await fetch(`/api/products/${id}`, {
@@ -152,22 +197,22 @@ document.addEventListener('DOMContentLoaded', async function() {
                         });
                         const data = await response.json();
                         if (data.success) {
-                            alert('Товар удалён');
+                            showNotification('Товар удалён', 'success');
                             await loadProducts();
                             localStorage.setItem('productsUpdated', Date.now());
                         } else {
-                            alert('Ошибка: ' + data.message);
+                            showNotification('Ошибка: ' + data.message, 'error');
                         }
                     } catch (err) {
                         console.error(err);
-                        alert('Ошибка соединения с сервером');
+                        showNotification('Ошибка соединения с сервером', 'error');
                     }
                 });
             });
 
         } catch (err) {
             console.error(err);
-            tbody.innerHTML = '<tr><td colspan="8">Ошибка загрузки данных</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="8">Ошибка загрузки数据</tr>';
         }
     }
 
@@ -350,15 +395,15 @@ document.addEventListener('DOMContentLoaded', async function() {
                 const guarantee = document.getElementById('edit-guarantee').value;
 
                 if (!name || !typeId) {
-                    alert('Заполните все обязательные поля');
+                    showNotification('Заполните все обязательные поля', 'error');
                     return;
                 }
                 if (isNaN(price) || price < 1 || price > 10000000) {
-                    alert('Цена должна быть от 1 до 10 000 000');
+                    showNotification('Цена должна быть от 1 до 10 000 000', 'error');
                     return;
                 }
                 if (isNaN(stock) || stock < 0 || stock > 1000) {
-                    alert('Количество должно быть от 0 до 1000');
+                    showNotification('Количество должно быть от 0 до 1000', 'error');
                     return;
                 }
 
@@ -373,12 +418,12 @@ document.addEventListener('DOMContentLoaded', async function() {
                         });
                         const uploadData = await uploadResponse.json();
                         if (!uploadData.success) {
-                            alert('Ошибка загрузки фото: ' + uploadData.message);
+                            showNotification('Ошибка загрузки фото: ' + uploadData.message, 'error');
                             return;
                         }
                     } catch (err) {
                         console.error(err);
-                        alert('Ошибка при загрузке фото');
+                        showNotification('Ошибка при загрузке фото', 'error');
                         return;
                     }
                 }
@@ -397,7 +442,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                     });
                     const updateData = await updateResponse.json();
                     if (updateData.success) {
-                        alert('Товар обновлён');
+                        showNotification('Товар обновлён', 'success');
                         if (modal && modal.parentNode) {
                             modal.parentNode.removeChild(modal);
                         }
@@ -405,11 +450,11 @@ document.addEventListener('DOMContentLoaded', async function() {
                         await loadProducts();
                         localStorage.setItem('productsUpdated', Date.now());
                     } else {
-                        alert('Ошибка: ' + updateData.message);
+                        showNotification('Ошибка: ' + updateData.message, 'error');
                     }
                 } catch (err) {
                     console.error(err);
-                    alert('Ошибка соединения с сервером');
+                    showNotification('Ошибка соединения с сервером', 'error');
                 }
             });
 
@@ -422,7 +467,7 @@ document.addEventListener('DOMContentLoaded', async function() {
 
         } catch (err) {
             console.error(err);
-            alert('Ошибка при загрузке данных товара');
+            showNotification('Ошибка при загрузке данных товара', 'error');
         }
     }
 
@@ -594,15 +639,15 @@ document.addEventListener('DOMContentLoaded', async function() {
                 const guarantee = document.getElementById('add-guarantee').value;
 
                 if (!name || !typeId) {
-                    alert('Заполните все обязательные поля');
+                    showNotification('Заполните все обязательные поля', 'error');
                     return;
                 }
                 if (isNaN(price) || price < 1 || price > 10000000) {
-                    alert('Цена должна быть от 1 до 10 000 000');
+                    showNotification('Цена должна быть от 1 до 10 000 000', 'error');
                     return;
                 }
                 if (isNaN(stock) || stock < 0 || stock > 1000) {
-                    alert('Количество должно быть от 0 до 1000');
+                    showNotification('Количество должно быть от 0 до 1000', 'error');
                     return;
                 }
 
@@ -621,13 +666,13 @@ document.addEventListener('DOMContentLoaded', async function() {
                     });
                     const createData = await createResponse.json();
                     if (!createData.success) {
-                        alert('Ошибка создания товара: ' + createData.message);
+                        showNotification('Ошибка создания товара: ' + createData.message, 'error');
                         return;
                     }
                     newProductId = createData.id;
                 } catch (err) {
                     console.error(err);
-                    alert('Ошибка соединения с сервером');
+                    showNotification('Ошибка соединения с сервером', 'error');
                     return;
                 }
 
@@ -642,15 +687,15 @@ document.addEventListener('DOMContentLoaded', async function() {
                         });
                         const uploadData = await uploadResponse.json();
                         if (!uploadData.success) {
-                            alert('Товар создан, но фото не загрузилось: ' + uploadData.message);
+                            showNotification('Товар создан, но фото не загрузилось: ' + uploadData.message, 'info');
                         }
                     } catch (err) {
                         console.error(err);
-                        alert('Товар создан, но ошибка при загрузке фото');
+                        showNotification('Товар создан, но ошибка при загрузке фото', 'info');
                     }
                 }
 
-                alert('Товар успешно добавлен');
+                showNotification('Товар успешно добавлен', 'success');
                 if (modal && modal.parentNode) {
                     modal.parentNode.removeChild(modal);
                 }
@@ -668,14 +713,14 @@ document.addEventListener('DOMContentLoaded', async function() {
 
         } catch (err) {
             console.error(err);
-            alert('Ошибка при открытии формы добавления');
+            showNotification('Ошибка при открытии формы добавления', 'error');
         }
     }
 
     // Категории
     async function loadCategories() {
         const tbody = document.getElementById('categoriesTableBody');
-        tbody.innerHTML = '<tr><td colspan="3">Загрузка...</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="3">Загрузка...</tr>';
 
         try {
             const response = await fetch('/api/categories_with_id');
@@ -684,7 +729,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             if (!data.success) throw new Error(data.message || 'Неизвестная ошибка');
 
             if (data.categories.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="3">Категории не найдены</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="3">Категории не найдены</tr>';
                 return;
             }
 
@@ -713,7 +758,8 @@ document.addEventListener('DOMContentLoaded', async function() {
             document.querySelectorAll('.delete-cat-btn').forEach(btn => {
                 btn.addEventListener('click', async (e) => {
                     const id = e.currentTarget.dataset.id;
-                    if (!confirm(`Вы уверены, что хотите удалить категорию?`)) return;
+                    const confirmed = await showConfirm(`Вы уверены, что хотите удалить категорию?`);
+                    if (!confirmed) return;
 
                     try {
                         const response = await fetch(`/api/categories/${id}`, {
@@ -721,21 +767,21 @@ document.addEventListener('DOMContentLoaded', async function() {
                         });
                         const data = await response.json();
                         if (data.success) {
-                            alert('Категория удалена');
+                            showNotification('Категория удалена', 'success');
                             loadCategories();
                         } else {
-                            alert('Ошибка: ' + data.message);
+                            showNotification('Ошибка: ' + data.message, 'error');
                         }
                     } catch (err) {
                         console.error(err);
-                        alert('Ошибка соединения с сервером');
+                        showNotification('Ошибка соединения с сервером', 'error');
                     }
                 });
             });
 
         } catch (err) {
             console.error(err);
-            tbody.innerHTML = '<tr><td colspan="3">Ошибка загрузки данных</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="3">Ошибка загрузки данных</tr>';
         }
     }
 
@@ -798,7 +844,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             e.preventDefault();
             const name = document.getElementById('cat-name').value.trim();
             if (!name) {
-                alert('Введите название категории');
+                showNotification('Введите название категории', 'error');
                 return;
             }
 
@@ -810,18 +856,18 @@ document.addEventListener('DOMContentLoaded', async function() {
                 });
                 const data = await response.json();
                 if (data.success) {
-                    alert('Категория создана');
+                    showNotification('Категория создана', 'success');
                     if (modal && modal.parentNode) {
                         modal.parentNode.removeChild(modal);
                     }
                     removeBodyLock();
                     loadCategories();
                 } else {
-                    alert('Ошибка: ' + data.message);
+                    showNotification('Ошибка: ' + data.message, 'error');
                 }
             } catch (err) {
                 console.error(err);
-                alert('Ошибка соединения с сервером');
+                showNotification('Ошибка соединения с сервером', 'error');
             }
         });
 
@@ -892,7 +938,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             e.preventDefault();
             const name = document.getElementById('cat-name').value.trim();
             if (!name) {
-                alert('Введите название категории');
+                showNotification('Введите название категории', 'error');
                 return;
             }
 
@@ -904,18 +950,18 @@ document.addEventListener('DOMContentLoaded', async function() {
                 });
                 const data = await response.json();
                 if (data.success) {
-                    alert('Категория обновлена');
+                    showNotification('Категория обновлена', 'success');
                     if (modal && modal.parentNode) {
                         modal.parentNode.removeChild(modal);
                     }
                     removeBodyLock();
                     loadCategories();
                 } else {
-                    alert('Ошибка: ' + data.message);
+                    showNotification('Ошибка: ' + data.message, 'error');
                 }
             } catch (err) {
                 console.error(err);
-                alert('Ошибка соединения с сервером');
+                showNotification('Ошибка соединения с сервером', 'error');
             }
         });
 
@@ -930,7 +976,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     // Заказы
     async function loadOrders() {
         const tbody = document.getElementById('ordersTableBody');
-        tbody.innerHTML = '<tr><td colspan="8">Загрузка...</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="8">Загрузка...</tr>';
 
         try {
             const response = await fetch('/api/admin/orders');
@@ -939,7 +985,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             if (!data.success) throw new Error(data.message || 'Неизвестная ошибка');
 
             if (data.orders.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="8">Заказы не найдены</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="8">Заказы не найдены</tr>';
                 return;
             }
 
@@ -975,7 +1021,8 @@ document.addEventListener('DOMContentLoaded', async function() {
                 select.addEventListener('change', async (e) => {
                     const orderId = e.target.dataset.orderId;
                     const newState = e.target.value;
-                    if (!confirm(`Изменить статус заказа №${orderId}?`)) {
+                    const confirmed = await showConfirm(`Изменить статус заказа №${orderId}?`);
+                    if (!confirmed) {
                         e.target.value = e.target.dataset.currentState;
                         return;
                     }
@@ -987,7 +1034,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                         });
                         const data = await response.json();
                         if (data.success) {
-                            alert('Статус обновлён');
+                            showNotification('Статус обновлён', 'success');
                             e.target.dataset.currentState = newState;
                             const deleteBtn = document.querySelector(`.delete-order-btn[data-order-id="${orderId}"]`);
                             if (deleteBtn) {
@@ -998,12 +1045,12 @@ document.addEventListener('DOMContentLoaded', async function() {
                                 }
                             }
                         } else {
-                            alert('Ошибка: ' + data.message);
+                            showNotification('Ошибка: ' + data.message, 'error');
                             e.target.value = e.target.dataset.currentState;
                         }
                     } catch (err) {
                         console.error(err);
-                        alert('Ошибка соединения с сервером');
+                        showNotification('Ошибка соединения с сервером', 'error');
                         e.target.value = e.target.dataset.currentState;
                     }
                 });
@@ -1019,7 +1066,8 @@ document.addEventListener('DOMContentLoaded', async function() {
             document.querySelectorAll('.delete-order-btn').forEach(btn => {
                 btn.addEventListener('click', async (e) => {
                     const orderId = e.currentTarget.dataset.orderId;
-                    if (!confirm(`Вы уверены, что хотите удалить заказ №${orderId}?`)) return;
+                    const confirmed = await showConfirm(`Вы уверены, что хотите удалить заказ №${orderId}?`);
+                    if (!confirmed) return;
 
                     try {
                         const response = await fetch(`/api/admin/orders/${orderId}`, {
@@ -1027,21 +1075,21 @@ document.addEventListener('DOMContentLoaded', async function() {
                         });
                         const data = await response.json();
                         if (data.success) {
-                            alert('Заказ удалён');
+                            showNotification('Заказ удалён', 'success');
                             loadOrders();
                         } else {
-                            alert('Ошибка: ' + data.message);
+                            showNotification('Ошибка: ' + data.message, 'error');
                         }
                     } catch (err) {
                         console.error(err);
-                        alert('Ошибка соединения с сервером');
+                        showNotification('Ошибка соединения с сервером', 'error');
                     }
                 });
             });
 
         } catch (err) {
             console.error(err);
-            tbody.innerHTML = '<tr><td colspan="8">Ошибка загрузки данных</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="8">Ошибка загрузки данных</tr>';
         }
     }
 
@@ -1051,7 +1099,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             const response = await fetch(`/api/admin/orders/${orderId}/items`);
             const data = await response.json();
             if (!data.success) {
-                alert('Ошибка загрузки состава: ' + data.message);
+                showNotification('Ошибка загрузки состава: ' + data.message, 'error');
                 return;
             }
 
@@ -1124,7 +1172,7 @@ document.addEventListener('DOMContentLoaded', async function() {
 
         } catch (err) {
             console.error(err);
-            alert('Ошибка соединения с сервером');
+            showNotification('Ошибка соединения с сервером', 'error');
         }
     }
 
@@ -1154,7 +1202,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         const categoryId = document.getElementById('reportCategory').value;
 
         if (!fromDate || !toDate) {
-            alert('Выберите период');
+            showNotification('Выберите период', 'error');
             return;
         }
 
@@ -1229,7 +1277,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         const categoryId = document.getElementById('reportCategory').value;
 
         if (!fromDate || !toDate) {
-            alert('Выберите период');
+            showNotification('Выберите период', 'error');
             return;
         }
 
@@ -1243,7 +1291,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             const response = await fetch(url, { cache: 'no-cache' });
             if (!response.ok) {
                 const errorText = await response.text();
-                alert(`Ошибка: ${errorText}`);
+                showNotification(`Ошибка: ${errorText}`, 'error');
                 return;
             }
             const blob = await response.blob();
@@ -1257,7 +1305,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             window.URL.revokeObjectURL(downloadUrl);
         } catch (err) {
             console.error(err);
-            alert('Ошибка соединения с сервером');
+            showNotification('Ошибка соединения с сервером', 'error');
         }
     }
 
@@ -1352,7 +1400,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             const response = await fetch(url, { cache: 'no-cache' });
             if (!response.ok) {
                 const errorText = await response.text();
-                alert(`Ошибка: ${errorText}`);
+                showNotification(`Ошибка: ${errorText}`, 'error');
                 return;
             }
             const blob = await response.blob();
@@ -1366,7 +1414,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             window.URL.revokeObjectURL(downloadUrl);
         } catch (err) {
             console.error(err);
-            alert('Ошибка соединения с сервером');
+            showNotification('Ошибка соединения с сервером', 'error');
         }
     }
 });

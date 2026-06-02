@@ -1,4 +1,48 @@
 document.addEventListener('DOMContentLoaded', function() {
+    // Кастомные уведомления
+    function showNotification(message, type = 'info') {
+        const notif = document.createElement('div');
+        notif.className = `notification ${type}`;
+        notif.textContent = message;
+        document.body.appendChild(notif);
+        setTimeout(() => notif.classList.add('show'), 10);
+        setTimeout(() => {
+            notif.classList.remove('show');
+            setTimeout(() => notif.remove(), 300);
+        }, 3000);
+    }
+
+    function showConfirm(message) {
+        return new Promise((resolve) => {
+            const modal = document.createElement('div');
+            modal.className = 'confirm-modal';
+            modal.innerHTML = `
+                <div class="confirm-content">
+                    <p>${message}</p>
+                    <div class="confirm-buttons">
+                        <button class="confirm-yes">Да</button>
+                        <button class="confirm-no">Нет</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+            modal.querySelector('.confirm-yes').onclick = () => {
+                modal.remove();
+                resolve(true);
+            };
+            modal.querySelector('.confirm-no').onclick = () => {
+                modal.remove();
+                resolve(false);
+            };
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    modal.remove();
+                    resolve(false);
+                }
+            });
+        });
+    }
+
     // элементы для авторизации
     const authBtn = document.getElementById('authBtn');
     const authDropdown = document.getElementById('authDropdown');
@@ -62,7 +106,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     let mode = 'login';
 
-    // счётчик открытых модальных окон для блокировки скролла
+    // счётчик открытых модальных окон 
     let modalCounter = 0;
 
     function addBodyLock() {
@@ -234,11 +278,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
         if (mode === 'login') {
             if (!login || !password) {
-                alert('Заполните все поля');
+                showNotification('Заполните все поля', 'error');
                 return;
             }
             if (containsWhitespace(login) || containsWhitespace(password)) {
-                alert('Логин и пароль не должны содержать пробелов');
+                showNotification('Логин и пароль не должны содержать пробелов', 'error');
                 return;
             }
             try {
@@ -251,7 +295,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (data.success) {
                     localStorage.setItem('user', JSON.stringify(data.user));
                     const name = (data.user.client?.fio) ? data.user.client.fio : data.user.login;
-                    alert(`Добро пожаловать, ${name}!`);
+                    showNotification(`Добро пожаловать, ${name}!`, 'success');
                     updateAuthButton(data.user);
                     isAdmin = (data.user.role && data.user.role.toLowerCase() === 'admin');
                     updateUIBasedOnRole();
@@ -263,25 +307,25 @@ document.addEventListener('DOMContentLoaded', function() {
                         loadProductsWithFilters();
                     }
                 } else {
-                    alert('Ошибка: ' + data.message);
+                    showNotification('Ошибка: ' + data.message, 'error');
                 }
             } catch (err) {
                 console.error(err);
-                alert('Сервер не отвечает. Запустите бэкенд.');
+                showNotification('Сервер не отвечает. Запустите бэкенд.', 'error');
             }
         } else {
             const fio = fioInput.value.trim();
             const email = emailInput.value.trim();
             if (!login || !password || !fio || !email) {
-                alert('Заполните все поля');
+                showNotification('Заполните все поля', 'error');
                 return;
             }
             if (containsWhitespace(login) || containsWhitespace(password) || containsWhitespace(email)) {
-                alert('Логин, пароль и email не должны содержать пробелов');
+                showNotification('Логин, пароль и email не должны содержать пробелов', 'error');
                 return;
             }
             if (!isValidEmail(email)) {
-                alert('Введите корректный email (например, name@mail.ru)');
+                showNotification('Введите корректный email (например, name@mail.ru)', 'error');
                 return;
             }
             try {
@@ -292,15 +336,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
                 const data = await res.json();
                 if (data.success) {
-                    alert('Регистрация успешна! Теперь войдите.');
+                    showNotification('Регистрация успешна! Теперь войдите.', 'success');
                     setMode('login');
                     authForm.reset();
                 } else {
-                    alert('Ошибка: ' + data.message);
+                    showNotification('Ошибка: ' + data.message, 'error');
                 }
             } catch (err) {
                 console.error(err);
-                alert('Сервер не отвечает.');
+                showNotification('Сервер не отвечает.', 'error');
             }
         }
     });
@@ -538,16 +582,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 checkoutBtn.addEventListener('click', () => {
                     const userData = localStorage.getItem('user');
                     if (!userData) {
-                        alert('Необходимо авторизоваться');
+                        showNotification('Необходимо авторизоваться', 'error');
                         return;
                     }
                     const user = JSON.parse(userData);
                     if (!user.client || !user.client.id_clients) {
-                        alert('Для оформления заказа необходимо быть клиентом');
+                        showNotification('Для оформления заказа необходимо быть клиентом', 'error');
                         return;
                     }
                     if (cart.length === 0) {
-                        alert('Корзина пуста');
+                        showNotification('Корзина пуста', 'error');
                         return;
                     }
 
@@ -681,14 +725,14 @@ document.addEventListener('DOMContentLoaded', function() {
                     payBtn.onclick = async () => {
                         const paymentMethod = document.querySelector('input[name="payment"]:checked')?.value;
                         if (paymentMethod !== 'cash') {
-                            alert('Оплата картой временно недоступна. Выберите наличные.');
+                            showNotification('Оплата картой временно недоступна. Выберите наличные.', 'error');
                             return;
                         }
 
                         const addressInput = document.getElementById('addressInput');
                         const address = addressInput?.value.trim();
                         if (!address) {
-                            alert('Пожалуйста, укажите адрес доставки');
+                            showNotification('Пожалуйста, укажите адрес доставки', 'error');
                             return;
                         }
 
@@ -710,17 +754,17 @@ document.addEventListener('DOMContentLoaded', function() {
                             });
                             const data = await response.json();
                             if (data.success) {
-                                alert(`Заказ №${data.order_id} успешно оформлен!`);
+                                showNotification(`Заказ №${data.order_id} успешно оформлен!`, 'success');
                                 cart = [];
                                 saveCart();
                                 updateCartUI();
                                 loadProductsWithFilters();
                             } else {
-                                alert('Ошибка: ' + data.message);
+                                showNotification('Ошибка: ' + data.message, 'error');
                             }
                         } catch (err) {
                             console.error(err);
-                            alert('Ошибка при оформлении заказа. Проверьте соединение с сервером.');
+                            showNotification('Ошибка при оформлении заказа. Проверьте соединение с сервером.', 'error');
                         }
                     };
 
@@ -745,14 +789,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function addToCart(product, qty) {
         if (qty < 1) {
-            alert('Количество должно быть не менее 1');
+            showNotification('Количество должно быть не менее 1', 'error');
             return false;
         }
         if (isAdmin) return false;
         const existing = cart.find(item => item.id === product.idProduct);
         const currentQty = existing ? existing.quantity : 0;
         if (currentQty + qty > product.Col_Product) {
-            alert(`Нельзя добавить больше ${product.Col_Product} шт. товара "${product.Name_Product}". В корзине уже ${currentQty} шт.`);
+            showNotification(`Нельзя добавить больше ${product.Col_Product} шт. товара "${product.Name_Product}". В корзине уже ${currentQty} шт.`, 'error');
             return false;
         }
         if (existing) {
@@ -773,26 +817,26 @@ document.addEventListener('DOMContentLoaded', function() {
     if (addToCartBtn) {
         addToCartBtn.addEventListener('click', () => {
             if (isAdmin) {
-                alert('Администратор не может добавлять товары в корзину.');
+                showNotification('Администратор не может добавлять товары в корзину.', 'error');
                 return;
             }
             if (!localStorage.getItem('user')) {
-                alert('Необходимо авторизоваться');
+                showNotification('Необходимо авторизоваться', 'error');
                 return;
             }
             if (!currentProduct) return;
             const qty = parseInt(modalQuantity.value);
             if (isNaN(qty) || qty < 1) {
-                alert('Укажите корректное количество (целое число не менее 1)');
+                showNotification('Укажите корректное количество (целое число не менее 1)', 'error');
                 return;
             }
             if (qty > currentProduct.Col_Product) {
-                alert(`Нельзя добавить больше ${currentProduct.Col_Product} шт.`);
+                showNotification(`Нельзя добавить больше ${currentProduct.Col_Product} шт.`, 'error');
                 return;
             }
             const added = addToCart(currentProduct, qty);
             if (added) {
-                alert('Товар добавлен в корзину');
+                showNotification('Товар добавлен в корзину', 'success');
                 closeProductModal();
             }
         });
@@ -826,15 +870,16 @@ document.addEventListener('DOMContentLoaded', function() {
     async function cancelOrder(orderId) {
         const userData = localStorage.getItem('user');
         if (!userData) {
-            alert('Необходимо авторизоваться');
+            showNotification('Необходимо авторизоваться', 'error');
             return;
         }
         const user = JSON.parse(userData);
         if (!user.client || !user.client.id_clients) {
-            alert('Не удалось определить клиента');
+            showNotification('Не удалось определить клиента', 'error');
             return;
         }
-        if (!confirm('Вы уверены, что хотите отменить заказ?')) return;
+        const isConfirmed = await showConfirm('Вы уверены, что хотите отменить заказ?');
+        if (!isConfirmed) return;
 
         try {
             const response = await fetch('/api/order/cancel', {
@@ -847,7 +892,7 @@ document.addEventListener('DOMContentLoaded', function() {
             });
             const data = await response.json();
             if (data.success) {
-                alert('Заказ успешно отменён');
+                showNotification('Заказ успешно отменён', 'success');
                 loadProductsWithFilters();
                 // Закрыть все модалки истории перед открытием новой
                 document.querySelectorAll('.orders-modal').forEach(el => {
@@ -858,11 +903,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
                 openOrdersModal();
             } else {
-                alert('Ошибка: ' + data.message);
+                showNotification('Ошибка: ' + data.message, 'error');
             }
         } catch (err) {
             console.error(err);
-            alert('Ошибка соединения с сервером');
+            showNotification('Ошибка соединения с сервером', 'error');
         }
     }
 
@@ -870,12 +915,12 @@ document.addEventListener('DOMContentLoaded', function() {
     async function downloadInvoice(orderId) {
         const userData = localStorage.getItem('user');
         if (!userData) {
-            alert('Необходимо авторизоваться');
+            showNotification('Необходимо авторизоваться', 'error');
             return;
         }
         const user = JSON.parse(userData);
         if (!user.client || !user.client.id_clients) {
-            alert('Не удалось определить клиента');
+            showNotification('Не удалось определить клиента', 'error');
             return;
         }
 
@@ -887,7 +932,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const response = await fetch(url, { cache: 'no-cache' });
             if (!response.ok) {
                 const errorText = await response.text();
-                alert(`Ошибка: ${errorText}`);
+                showNotification(`Ошибка: ${errorText}`, 'error');
                 return;
             }
             const blob = await response.blob();
@@ -901,7 +946,7 @@ document.addEventListener('DOMContentLoaded', function() {
             window.URL.revokeObjectURL(downloadUrl);
         } catch (err) {
             console.error(err);
-            alert('Ошибка соединения с сервером');
+            showNotification('Ошибка соединения с сервером', 'error');
         }
     }
 
@@ -911,12 +956,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const userData = localStorage.getItem('user');
         if (!userData) {
-            alert('Необходимо авторизоваться');
+            showNotification('Необходимо авторизоваться', 'error');
             return;
         }
         const user = JSON.parse(userData);
         if (!user.client || !user.client.id_clients) {
-            alert('История заказов доступна только клиентам');
+            showNotification('История заказов доступна только клиентам', 'error');
             return;
         }
 
@@ -926,7 +971,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const data = await response.json();
             console.log('Данные заказов:', data);
             if (!data.success) {
-                alert('Ошибка загрузки заказов: ' + data.message);
+                showNotification('Ошибка загрузки заказов: ' + data.message, 'error');
                 return;
             }
 
@@ -1059,7 +1104,7 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         } catch (err) {
             console.error(err);
-            alert('Ошибка соединения с сервером');
+            showNotification('Ошибка соединения с сервером', 'error');
         }
     }
 
@@ -1077,7 +1122,7 @@ document.addEventListener('DOMContentLoaded', function() {
         searchInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') loadProductsWithFilters();
         });
-        // Добавляем живой поиск с debounce
+        // поиск в реальном времени
         let searchTimeout;
         searchInput.addEventListener('input', () => {
             clearTimeout(searchTimeout);
