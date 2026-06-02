@@ -995,7 +995,6 @@ body {
     pointer-events: none;
     white-space: nowrap;
 }
-/* Для мобильных устройств  */
 @media (max-width: 768px) {
     .notification {
         white-space: normal;
