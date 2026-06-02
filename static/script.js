@@ -429,48 +429,58 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     function renderProducts(products) {
-        const container = document.getElementById('productsContainer');
-        if (!container) return;
-        container.innerHTML = '';
+    const container = document.getElementById('productsContainer');
+    if (!container) return;
+    container.innerHTML = '';
 
-        products.forEach(p => {
-            const card = document.createElement('div');
-            card.className = 'product-card';
+    products.forEach(p => {
+        const card = document.createElement('div');
+        card.className = 'product-card';
 
-            const imageHtml = p.image_url
-                ? `<img src="${p.image_url}" alt="${p.Name_Product}">`
-                : '<i class="fas fa-image"></i>';
+        const imageHtml = p.image_url
+            ? `<img src="${p.image_url}" alt="${p.Name_Product}">`
+            : '<i class="fas fa-image"></i>';
 
-            let buttonHtml = '';
-            if (!isAdmin) {
-                buttonHtml = p.Col_Product > 0
-                    ? `<button class="btn-details" data-id="${p.idProduct}">Подробнее</button>`
-                    : '<button class="btn-details disabled" disabled>Нет в наличии</button>';
-            }
+        let buttonHtml = '';
+        if (!isAdmin) {
+            buttonHtml = p.Col_Product > 0
+                ? `<button class="btn-details" data-id="${p.idProduct}">Подробнее</button>`
+                : '<button class="btn-details disabled" disabled>Нет в наличии</button>';
+        }
 
-            card.innerHTML = `
-                <div class="product-image">${imageHtml}</div>
-                <div class="product-info">
-                    <div class="product-name">${p.Name_Product}</div>
-                    <div class="product-type">${p.name_type || 'Без типа'}</div>
-                    <div class="product-details">
-                        <span class="product-price">${p.Price} ₽</span>
-                        <span class="product-stock">Осталось: ${p.Col_Product}</span>
-                    </div>
-                    <div class="product-guarantee">Гарантия: ${p.Guarantee || 'Нет'}</div>
-                    ${buttonHtml}
+        card.innerHTML = `
+            <div class="product-image">${imageHtml}</div>
+            <div class="product-info">
+                <div class="product-name">${p.Name_Product}</div>
+                <div class="product-type">${p.name_type || 'Без типа'}</div>
+                <div class="product-details">
+                    <span class="product-price">${p.Price} ₽</span>
+                    <span class="product-stock">Осталось: ${p.Col_Product}</span>
                 </div>
-            `;
-            container.appendChild(card);
+                <div class="product-guarantee">Гарантия: ${p.Guarantee || 'Нет'}</div>
+                ${buttonHtml}
+            </div>
+        `;
+        container.appendChild(card);
 
-            if (!isAdmin) {
-                const btn = card.querySelector('.btn-details:not(.disabled)');
-                if (btn) {
-                    btn.addEventListener('click', () => openProductModal(p));
-                }
+        if (!isAdmin) {
+            // Клик по кнопке "Подробнее"
+            const btn = card.querySelector('.btn-details:not(.disabled)');
+            if (btn) {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    openProductModal(p);
+                });
             }
-        });
-    }
+            // Клик по всей карточке
+            card.addEventListener('click', (e) => {
+                if (e.target.closest('.btn-details')) return;
+                if (p.Col_Product <= 0) return;
+                openProductModal(p);
+            });
+        }
+    });
+}
 
     // Модальное окно товара 
     const modal = document.getElementById('productModal');
